@@ -33,8 +33,8 @@ graph TB
         GF[Grafana Dashboards]
     end
 
-    Client -->|REST API / redirect| HTTP
-    Client -->|programmatic access| GRPC
+    Client -->|HTTP| HTTP
+    Client -->|gRPC| GRPC
     HTTP --> SVC
     GRPC --> SVC
     SVC -->|CRUD links| PG
