@@ -6,8 +6,7 @@ A distributed URL shortener built with Go, showcasing microservice architecture 
 
 ```mermaid
 graph TB
-    Client([Browser / curl])
-    Internal([Internal Services])
+    Client([Client])
 
     subgraph Shortener Service
         HTTP[Fiber HTTP :8080]
@@ -35,7 +34,7 @@ graph TB
     end
 
     Client -->|REST API / redirect| HTTP
-    Internal -.->|service-to-service| GRPC
+    Client -->|programmatic access| GRPC
     HTTP --> SVC
     GRPC --> SVC
     SVC -->|CRUD links| PG
