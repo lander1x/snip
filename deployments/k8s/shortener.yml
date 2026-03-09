@@ -19,13 +19,9 @@ spec:
           ports:
             - containerPort: 8080
               name: http
-            - containerPort: 50051
-              name: grpc
           env:
             - name: HTTP_ADDR
               value: ":8080"
-            - name: GRPC_ADDR
-              value: ":50051"
             - name: BASE_URL
               value: "https://snip.example.com"
             - name: POSTGRES_DSN
@@ -69,6 +65,3 @@ spec:
     - name: http
       port: 80
       targetPort: 8080
-    - name: grpc
-      port: 50051
-      targetPort: 50051

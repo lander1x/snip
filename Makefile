@@ -1,4 +1,4 @@
-.PHONY: build run test lint proto clean docker-up docker-down migrate
+.PHONY: build run test lint clean docker-up docker-down migrate
 
 # Build
 build:
@@ -22,12 +22,6 @@ test-cover:
 # Lint
 lint:
 	golangci-lint run ./...
-
-# Proto
-proto:
-	protoc --go_out=. --go_opt=paths=source_relative \
-		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
-		proto/shortener.proto
 
 # Docker
 docker-up:

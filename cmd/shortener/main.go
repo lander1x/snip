@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"log/slog"
-	"net"
 	"os"
 	"os/signal"
 	"syscall"
@@ -14,11 +13,9 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/nats-io/nats.go"
 	"github.com/redis/go-redis/v9"
-	"google.golang.org/grpc"
 
 	"github.com/landerix/snip/internal/common"
 	"github.com/landerix/snip/internal/shortener"
-	pb "github.com/landerix/snip/proto"
 )
 
 func main() {
@@ -69,7 +66,6 @@ func main() {
 		Storage:  nats.FileStorage,
 	}
 	if _, err = js.AddStream(streamCfg); err != nil {
-		// Stream may already exist with same config — that's ok
 		if _, err = js.UpdateStream(streamCfg); err != nil {
 			log.Error("failed to ensure jetstream stream", "error", err)
 			os.Exit(1)
@@ -97,29 +93,11 @@ func main() {
 		}
 	}()
 
-	// gRPC server
-	grpcServer := grpc.NewServer()
-	pb.RegisterShortenerServer(grpcServer, shortener.NewGRPCServer(svc))
-
-	lis, err := net.Listen("tcp", cfg.GRPCAddr)
-	if err != nil {
-		log.Error("failed to listen for gRPC", "error", err)
-		os.Exit(1)
-	}
-
-	go func() {
-		log.Info("starting gRPC server", "addr", cfg.GRPCAddr)
-		if err := grpcServer.Serve(lis); err != nil {
-			log.Error("gRPC server error", "error", err)
-		}
-	}()
-
 	// Graceful shutdown
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	sig := <-quit
 	log.Info("shutting down", slog.String("signal", sig.String()))
 
-	grpcServer.GracefulStop()
 	_ = app.Shutdown()
 }

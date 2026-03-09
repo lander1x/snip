@@ -1,6 +1,6 @@
 # Snip — Distributed URL Shortener
 
-A distributed URL shortener built with Go, showcasing microservice architecture with gRPC, NATS JetStream, ClickHouse, and Grafana.
+A distributed URL shortener built with Go, showcasing microservice architecture with NATS JetStream, ClickHouse, and Grafana.
 
 ## Architecture
 
@@ -10,7 +10,6 @@ graph TB
 
     subgraph Shortener Service
         HTTP[Fiber HTTP :8080]
-        GRPC[gRPC :50051]
         SVC[Service Layer]
     end
 
@@ -34,9 +33,7 @@ graph TB
     end
 
     Client -->|HTTP| HTTP
-    Client -->|gRPC| GRPC
     HTTP --> SVC
-    GRPC --> SVC
     SVC -->|CRUD links| PG
     SVC -->|cache resolve| RD
     SVC -->|publish click| NATS
@@ -86,7 +83,6 @@ sequenceDiagram
 | Component | Technology | Purpose |
 |-----------|-----------|---------|
 | **API** | Go, Fiber | HTTP REST endpoints |
-| **RPC** | gRPC, Protobuf | Programmatic access |
 | **Database** | PostgreSQL | Link storage |
 | **Cache** | Redis | Hot link resolution (TTL 1h) |
 | **Messaging** | NATS JetStream | Durable click event delivery |
@@ -119,13 +115,12 @@ make run-collector
 | Service | URL | Credentials |
 |---------|-----|-------------|
 | HTTP API | http://localhost:8080 | — |
-| gRPC | localhost:50051 | — |
 | Grafana | http://localhost:3000 | admin / admin |
 | NATS monitoring | http://localhost:8222 | — |
 
 ## API
 
-### HTTP Endpoints
+### Endpoints
 
 | Method | Path | Description | Response |
 |--------|------|-------------|----------|
@@ -156,16 +151,6 @@ curl -s http://localhost:8080/api/v1/links/gh | jq
 
 # Delete
 curl -X DELETE http://localhost:8080/api/v1/links/gh
-```
-
-### gRPC
-
-```protobuf
-service Shortener {
-  rpc CreateLink(CreateLinkRequest)   returns (Link);
-  rpc ResolveLink(ResolveLinkRequest) returns (Link);
-  rpc DeleteLink(DeleteLinkRequest)   returns (google.protobuf.Empty);
-}
 ```
 
 ## Validation
@@ -199,12 +184,11 @@ Open http://localhost:3000 (admin/admin) after `make docker-up`.
 ```
 snip/
 ├── cmd/
-│   ├── shortener/        # HTTP + gRPC server
+│   ├── shortener/        # HTTP server
 │   └── collector/        # NATS consumer → ClickHouse
 ├── internal/
 │   ├── shortener/
 │   │   ├── handler.go    # Fiber HTTP handlers
-│   │   ├── grpc.go       # gRPC server
 │   │   ├── service.go    # Business logic, validation
 │   │   ├── repository.go # PostgreSQL queries
 │   │   └── cache.go      # Redis cache layer
@@ -214,7 +198,6 @@ snip/
 │   └── common/
 │       ├── config.go     # Env-based config
 │       └── logger.go     # Structured logging (slog)
-├── proto/                # Protobuf definitions + generated code
 ├── migrations/
 │   ├── postgres/         # Links table DDL
 │   └── clickhouse/       # Click events table DDL
@@ -233,7 +216,6 @@ snip/
 make build          # Build both binaries
 make test           # Run tests with race detector
 make lint           # golangci-lint
-make proto          # Regenerate protobuf code
 make docker-up      # Start infrastructure
 make docker-down    # Stop infrastructure
 ```

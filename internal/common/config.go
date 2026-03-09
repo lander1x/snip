@@ -7,9 +7,8 @@ import (
 )
 
 type Config struct {
-	HTTPAddr  string
-	GRPCAddr  string
-	BaseURL   string
+	HTTPAddr string
+	BaseURL  string
 	Postgres  PostgresConfig
 	Redis     RedisConfig
 	NATS      NATSConfig
@@ -41,7 +40,6 @@ type ClickHouseConfig struct {
 func LoadConfig() Config {
 	return Config{
 		HTTPAddr: envOrDefault("HTTP_ADDR", ":8080"),
-		GRPCAddr: envOrDefault("GRPC_ADDR", ":50051"),
 		BaseURL:  envOrDefault("BASE_URL", "http://localhost:8080"),
 		Postgres: PostgresConfig{
 			DSN: envOrDefault("POSTGRES_DSN", "postgres://snip:snip@localhost:5432/snip?sslmode=disable"),
