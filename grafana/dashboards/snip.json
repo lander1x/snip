@@ -1,0 +1,70 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "title": "Total Clicks Over Time",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
+      "targets": [
+        {
+          "rawSql": "SELECT toStartOfMinute(timestamp) AS time, count() AS clicks FROM snip.click_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime GROUP BY time ORDER BY time",
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "lineWidth": 2, "fillOpacity": 10 }
+        }
+      }
+    },
+    {
+      "title": "Top Links by Clicks",
+      "type": "barchart",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
+      "targets": [
+        {
+          "rawSql": "SELECT code, count() AS clicks FROM snip.click_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime GROUP BY code ORDER BY clicks DESC LIMIT 10",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "title": "Clicks by Country",
+      "type": "geomap",
+      "gridPos": { "h": 10, "w": 12, "x": 0, "y": 8 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
+      "targets": [
+        {
+          "rawSql": "SELECT country, count() AS clicks FROM snip.click_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime AND country != '' GROUP BY country ORDER BY clicks DESC",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "title": "Clicks by Referer",
+      "type": "piechart",
+      "gridPos": { "h": 10, "w": 12, "x": 12, "y": 8 },
+      "datasource": { "type": "grafana-clickhouse-datasource", "uid": "clickhouse" },
+      "targets": [
+        {
+          "rawSql": "SELECT if(referer = '', 'direct', referer) AS source, count() AS clicks FROM snip.click_events WHERE timestamp >= $__fromTime AND timestamp <= $__toTime GROUP BY source ORDER BY clicks DESC LIMIT 10",
+          "format": "table"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["snip"],
+  "templating": { "list": [] },
+  "time": { "from": "now-24h", "to": "now" },
+  "title": "Snip — URL Shortener Analytics",
+  "uid": "snip-analytics"
+}

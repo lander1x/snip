@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: collector
+  namespace: snip
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: collector
+  template:
+    metadata:
+      labels:
+        app: collector
+    spec:
+      containers:
+        - name: collector
+          image: snip-collector:latest
+          env:
+            - name: NATS_URL
+              value: "nats://nats:4222"
+            - name: CLICKHOUSE_ADDR
+              value: "clickhouse:9000"
+            - name: CLICKHOUSE_DB
+              value: "snip"
+            - name: CLICKHOUSE_USER
+              value: "default"
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi

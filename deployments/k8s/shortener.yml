@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shortener
+  namespace: snip
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: shortener
+  template:
+    metadata:
+      labels:
+        app: shortener
+    spec:
+      containers:
+        - name: shortener
+          image: snip-shortener:latest
+          ports:
+            - containerPort: 8080
+              name: http
+            - containerPort: 50051
+              name: grpc
+          env:
+            - name: HTTP_ADDR
+              value: ":8080"
+            - name: GRPC_ADDR
+              value: ":50051"
+            - name: BASE_URL
+              value: "https://snip.example.com"
+            - name: POSTGRES_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: snip-secrets
+                  key: postgres-dsn
+            - name: REDIS_ADDR
+              value: "redis:6379"
+            - name: NATS_URL
+              value: "nats://nats:4222"
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shortener
+  namespace: snip
+spec:
+  selector:
+    app: shortener
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+    - name: grpc
+      port: 50051
+      targetPort: 50051
